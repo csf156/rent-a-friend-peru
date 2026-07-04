@@ -1,4 +1,4 @@
-import { isValidEmail, toE164Peru } from '@/lib/validation';
+import { isValidEmail, toE164Peru, isValidEdad, parseListInput } from '@/lib/validation';
 
 describe('isValidEmail', () => {
   it('accepts a standard email', () => {
@@ -43,5 +43,45 @@ describe('toE164Peru', () => {
 
   it('rejects non-numeric input', () => {
     expect(toE164Peru('abcdefghi')).toBeNull();
+  });
+});
+
+describe('isValidEdad', () => {
+  it('accepts exactly 18', () => {
+    expect(isValidEdad(18)).toBe(true);
+  });
+
+  it('accepts an adult age', () => {
+    expect(isValidEdad(30)).toBe(true);
+  });
+
+  it('rejects under 18', () => {
+    expect(isValidEdad(17)).toBe(false);
+  });
+
+  it('rejects negative numbers', () => {
+    expect(isValidEdad(-1)).toBe(false);
+  });
+
+  it('rejects non-integer ages', () => {
+    expect(isValidEdad(18.5)).toBe(false);
+  });
+
+  it('rejects NaN', () => {
+    expect(isValidEdad(NaN)).toBe(false);
+  });
+});
+
+describe('parseListInput', () => {
+  it('splits a comma-separated string into trimmed items', () => {
+    expect(parseListInput('viajar, cine,  música')).toEqual(['viajar', 'cine', 'música']);
+  });
+
+  it('drops empty entries from stray commas', () => {
+    expect(parseListInput('viajar,, cine,')).toEqual(['viajar', 'cine']);
+  });
+
+  it('returns an empty array for blank input', () => {
+    expect(parseListInput('   ')).toEqual([]);
   });
 });

@@ -9,6 +9,7 @@ jest.mock('@/lib/auth', () => ({
 }));
 jest.mock('@/lib/profile', () => ({
   getOwnProfile: jest.fn(),
+  isProfileComplete: jest.requireActual('@/lib/profile-complete').isProfileComplete,
 }));
 
 const mockReplace = jest.fn();
@@ -31,9 +32,19 @@ afterEach(() => {
 });
 
 describe('VerifyOtpScreen', () => {
-  it('verifies the code and goes home when the user already has a profile', async () => {
+  const completeProfile = {
+    rol: 'amigo',
+    nombre: 'Ana',
+    alias: 'Ani',
+    edad: 25,
+    genero: 'femenino',
+    profesion: 'Diseñadora',
+    foto_url: 'user-1/foto.jpg',
+  };
+
+  it('verifies the code and goes home when the profile is complete', async () => {
     mockedVerifyOtp.mockResolvedValue({ error: null });
-    mockedGetOwnProfile.mockResolvedValue({ rol: 'amigo' });
+    mockedGetOwnProfile.mockResolvedValue(completeProfile);
     await render(<VerifyOtpScreen />);
 
     await fireEvent.changeText(screen.getByPlaceholderText('000000'), '123456');
@@ -60,6 +71,19 @@ describe('VerifyOtpScreen', () => {
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/select-role');
+    });
+  });
+
+  it('sends users with an incomplete profile to profile-setup', async () => {
+    mockedVerifyOtp.mockResolvedValue({ error: null });
+    mockedGetOwnProfile.mockResolvedValue({ ...completeProfile, nombre: null });
+    await render(<VerifyOtpScreen />);
+
+    await fireEvent.changeText(screen.getByPlaceholderText('000000'), '123456');
+    await fireEvent.press(screen.getByText('Verificar'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/(auth)/profile-setup');
     });
   });
 

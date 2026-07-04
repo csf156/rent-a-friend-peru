@@ -23,3 +23,16 @@ export function toE164Peru(value: string): string | null {
   }
   return `+51${digits}`;
 }
+
+/** Peru requires 18+ for both roles (KYC gate happens later; this is form-level). */
+export function isValidEdad(edad: number): boolean {
+  return Number.isInteger(edad) && edad >= 18;
+}
+
+/** Parses a comma-separated free-text field (hobbies, intereses) into a clean list. */
+export function parseListInput(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}

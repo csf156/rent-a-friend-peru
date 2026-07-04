@@ -1,8 +1,11 @@
-export type AuthSegment = 'sign-in' | 'verify-otp' | 'select-role' | null;
+export type AuthSegment = 'sign-in' | 'verify-otp' | 'select-role' | 'profile-setup' | null;
+
+export type ProfileStatus = 'none' | 'incomplete' | 'complete';
 
 export type RouteGuardInput = {
   hasSession: boolean;
-  hasProfile: boolean;
+  /** 'none' = no profiles row yet, 'incomplete' = row exists but Fase 1.3 form pending. */
+  profileStatus: ProfileStatus;
   /** Current screen name inside the (auth) group, or null if outside it. */
   authSegment: AuthSegment;
 };
@@ -13,7 +16,7 @@ export type RouteGuardInput = {
  */
 export function computeRedirect({
   hasSession,
-  hasProfile,
+  profileStatus,
   authSegment,
 }: RouteGuardInput): string | null {
   if (!hasSession) {
@@ -21,8 +24,12 @@ export function computeRedirect({
     return allowedWhileSigningIn.includes(authSegment) ? null : '/(auth)/sign-in';
   }
 
-  if (!hasProfile) {
+  if (profileStatus === 'none') {
     return authSegment === 'select-role' ? null : '/(auth)/select-role';
+  }
+
+  if (profileStatus === 'incomplete') {
+    return authSegment === 'profile-setup' ? null : '/(auth)/profile-setup';
   }
 
   return authSegment !== null ? '/' : null;

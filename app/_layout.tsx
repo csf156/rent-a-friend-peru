@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import type { Session } from '@supabase/supabase-js';
 import { useAuthSession } from '@/hooks/useAuthSession';
-import { getOwnProfile } from '@/lib/profile';
-import { computeRedirect, type AuthSegment } from '@/lib/route-guard';
+import { getOwnProfile, isProfileComplete } from '@/lib/profile';
+import { computeRedirect, type AuthSegment, type ProfileStatus } from '@/lib/route-guard';
 
-const AUTH_SEGMENTS: AuthSegment[] = ['sign-in', 'verify-otp', 'select-role'];
+const AUTH_SEGMENTS: AuthSegment[] = ['sign-in', 'verify-otp', 'select-role', 'profile-setup'];
 
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { session, loading: sessionLoading } = useAuthSession();
 
-  const [hasProfile, setHasProfile] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus>('none');
   const [profileLoading, setProfileLoading] = useState(true);
   // Reset profile state synchronously during render when the session identity
   // changes, instead of setState-in-effect (see React docs: "Resetting state
@@ -20,7 +20,7 @@ export default function RootLayout() {
   const [trackedSession, setTrackedSession] = useState<Session | null>(session);
   if (trackedSession !== session) {
     setTrackedSession(session);
-    setHasProfile(false);
+    setProfileStatus('none');
     setProfileLoading(Boolean(session));
   }
 
@@ -29,7 +29,9 @@ export default function RootLayout() {
     let mounted = true;
     getOwnProfile().then((profile) => {
       if (!mounted) return;
-      setHasProfile(profile !== null);
+      setProfileStatus(
+        profile === null ? 'none' : isProfileComplete(profile) ? 'complete' : 'incomplete',
+      );
       setProfileLoading(false);
     });
     return () => {
@@ -44,11 +46,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (sessionLoading || profileLoading) return;
-    const redirect = computeRedirect({ hasSession: Boolean(session), hasProfile, authSegment });
+    const redirect = computeRedirect({ hasSession: Boolean(session), profileStatus, authSegment });
     if (redirect) {
       router.replace(redirect as never);
     }
-  }, [sessionLoading, profileLoading, session, hasProfile, authSegment, router]);
+  }, [sessionLoading, profileLoading, session, profileStatus, authSegment, router]);
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

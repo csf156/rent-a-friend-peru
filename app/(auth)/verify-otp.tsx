@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { verifyOtp, requestOtp, type Contact } from '@/lib/auth';
-import { getOwnProfile } from '@/lib/profile';
+import { getOwnProfile, isProfileComplete } from '@/lib/profile';
 import { useResendCooldown } from '@/hooks/useResendCooldown';
 import { colors, typography } from '@/lib/theme';
 import { Button } from '@/components/Button';
@@ -33,7 +33,13 @@ export default function VerifyOtpScreen() {
     const profile = await getOwnProfile();
     setLoading(false);
 
-    router.replace(profile ? '/' : '/(auth)/select-role');
+    if (!profile) {
+      router.replace('/(auth)/select-role');
+    } else if (!isProfileComplete(profile)) {
+      router.replace('/(auth)/profile-setup');
+    } else {
+      router.replace('/');
+    }
   }
 
   async function handleResend() {
