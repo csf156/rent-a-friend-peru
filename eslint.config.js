@@ -5,6 +5,6 @@ module.exports = [
   ...expoConfig,
   prettierConfig,
   {
-    ignores: ['dist/*', 'node_modules/*', '.expo/*'],
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', '.ds-sync/*', 'ds-bundle/*'],
   },
 ];
