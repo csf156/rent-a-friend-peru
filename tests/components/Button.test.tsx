@@ -1,5 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { Button } from '@/components/Button';
+import { colors } from '@/lib/theme';
 
 describe('Button', () => {
   it('renders the label', async () => {
@@ -25,5 +27,12 @@ describe('Button', () => {
     await render(<Button label="Invitar" onPress={() => {}} disabled />);
     const button = screen.getByRole('button');
     expect(button.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('uses AA-compliant dark text on the accent variant', async () => {
+    await render(<Button label="Invitar" variant="accent" onPress={() => {}} />);
+    const label = screen.getByText('Invitar');
+    const flatStyle = StyleSheet.flatten(label.props.style);
+    expect(flatStyle.color).toBe(colors.light.text);
   });
 });

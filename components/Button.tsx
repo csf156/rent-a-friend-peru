@@ -24,7 +24,9 @@ export function Button({ label, variant = 'primary', disabled = false, onPress }
         disabled && styles.disabled,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, variant === 'primary' ? styles.labelOnPrimary : styles.labelOnAccent]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -53,9 +55,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
-    color: colors.light.surface,
     fontFamily: typography.fontFamily.body,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
+  },
+  labelOnPrimary: {
+    color: colors.light.surface,
+  },
+  labelOnAccent: {
+    color: colors.light.text,
   },
 });
