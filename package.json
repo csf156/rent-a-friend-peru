@@ -28,6 +28,7 @@
     "jest-expo": "^57.0.1",
     "pg": "^8.22.0",
     "prettier": "^3.9.4",
+    "test-renderer": "^1.2.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
