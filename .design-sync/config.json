@@ -1,0 +1,17 @@
+{
+  "projectId": "6b9da6c9-86b1-4575-b446-6f646b0927bb",
+  "shape": "package",
+  "pkg": "rent-a-friend-peru",
+  "globalName": "RentAFriendPeru",
+  "entry": ".design-sync/entry.mjs",
+  "srcDir": "components",
+  "tsconfig": "./tsconfig.json",
+  "componentSrcMap": {
+    "Button": "components/Button.tsx"
+  },
+  "dtsPropsFor": {
+    "Button": "  label: string;\n  variant?: 'primary' | 'accent';\n  disabled?: boolean;\n  onPress?: () => void;"
+  },
+  "readmeHeader": ".design-sync/conventions.md",
+  "guidelinesGlob": "docs/2026-07-03-design-system.md"
+}
