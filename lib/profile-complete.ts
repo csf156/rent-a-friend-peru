@@ -10,6 +10,8 @@ export type OwnProfile = {
   genero: string | null;
   profesion: string | null;
   foto_url: string | null;
+  hobbies: string[];
+  intereses: string[];
   kyc_estado: KycEstado;
 };
 

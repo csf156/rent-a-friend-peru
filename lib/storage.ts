@@ -54,3 +54,21 @@ export async function uploadDniDocument(
   }
   return uploadToBucket('dni', `${uid}/${kind}.jpg`, localUri);
 }
+
+export type SignedUrlResult = { url: string | null; error: string | null };
+
+/**
+ * The `fotos` bucket is private (any authenticated user may read per the
+ * fotos_select_authenticated storage policy, but the bucket itself isn't
+ * public), so displaying a photo — own or someone else's public profile —
+ * requires a short-lived signed URL rather than a plain public URL.
+ */
+export async function getPhotoSignedUrl(path: string, expiresIn = 3600): Promise<SignedUrlResult> {
+  const { data, error } = await supabase.storage.from('fotos').createSignedUrl(path, expiresIn);
+
+  if (error) {
+    return { url: null, error: error.message };
+  }
+
+  return { url: data.signedUrl, error: null };
+}

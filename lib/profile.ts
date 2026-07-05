@@ -5,7 +5,7 @@ import { isProfileComplete, type OwnProfile } from '@/lib/profile-complete';
 export type { OwnProfile };
 export { isProfileComplete };
 
-const PROFILE_SELECT = 'rol, nombre, alias, edad, genero, profesion, foto_url, kyc_estado';
+const PROFILE_SELECT = 'rol, nombre, alias, edad, genero, profesion, foto_url, hobbies, intereses, kyc_estado';
 
 /** Returns the signed-in user's profile, or null if none exists yet. */
 export async function getOwnProfile(): Promise<OwnProfile | null> {
@@ -24,6 +24,31 @@ export async function getOwnProfile(): Promise<OwnProfile | null> {
     .maybeSingle();
 
   return data as OwnProfile | null;
+}
+
+export type PublicProfile = {
+  id: string;
+  rol: string;
+  alias: string | null;
+  edad: number | null;
+  genero: string | null;
+  profesion: string | null;
+  hobbies: string[];
+  intereses: string[];
+  foto_url: string | null;
+  kyc_estado: string;
+};
+
+/**
+ * Reads another user's SAFE public fields via the `perfiles_publicos` view
+ * (Fase 1.5 migration) — never the `profiles` table directly, whose RLS
+ * only allows reading your own row. The view's column allowlist (not this
+ * function) is what keeps nombre, saldo/nivel and other sensitive fields
+ * out of reach.
+ */
+export async function getPublicProfile(id: string): Promise<PublicProfile | null> {
+  const { data } = await supabase.from('perfiles_publicos').select('*').eq('id', id).maybeSingle();
+  return data as PublicProfile | null;
 }
 
 export type ProfileFormFields = {

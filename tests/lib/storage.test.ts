@@ -1,4 +1,4 @@
-import { uploadProfilePhoto, uploadDniDocument } from '@/lib/storage';
+import { uploadProfilePhoto, uploadDniDocument, getPhotoSignedUrl } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
 jest.mock('@/lib/supabase', () => ({
@@ -106,5 +106,33 @@ describe('uploadDniDocument', () => {
     expect(result.path).toBeNull();
     expect(result.error).toBe('No hay sesión activa.');
     expect(mockedSupabase.storage.from).not.toHaveBeenCalled();
+  });
+});
+
+describe('getPhotoSignedUrl', () => {
+  it('requests a signed URL for the given path in the fotos bucket', async () => {
+    const createSignedUrl = jest
+      .fn()
+      .mockResolvedValue({ data: { signedUrl: 'https://example.com/signed.jpg' }, error: null });
+    mockedSupabase.storage.from.mockReturnValue({ createSignedUrl });
+
+    const result = await getPhotoSignedUrl('user-1/foto.jpg');
+
+    expect(result.url).toBe('https://example.com/signed.jpg');
+    expect(result.error).toBeNull();
+    expect(mockedSupabase.storage.from).toHaveBeenCalledWith('fotos');
+    expect(createSignedUrl).toHaveBeenCalledWith('user-1/foto.jpg', 3600);
+  });
+
+  it('surfaces an error when the path does not exist', async () => {
+    const createSignedUrl = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: 'Object not found' } });
+    mockedSupabase.storage.from.mockReturnValue({ createSignedUrl });
+
+    const result = await getPhotoSignedUrl('user-1/foto.jpg');
+
+    expect(result.url).toBeNull();
+    expect(result.error).toBe('Object not found');
   });
 });

@@ -1,5 +1,6 @@
 import {
   getOwnProfile,
+  getPublicProfile,
   isProfileComplete,
   updateOwnProfile,
   upsertPreferenciasSalida,
@@ -44,7 +45,7 @@ describe('getOwnProfile', () => {
     expect(profile).toBeNull();
     expect(mockedSupabase.from).toHaveBeenCalledWith('profiles');
     expect(select).toHaveBeenCalledWith(
-      'rol, nombre, alias, edad, genero, profesion, foto_url, kyc_estado',
+      'rol, nombre, alias, edad, genero, profesion, foto_url, hobbies, intereses, kyc_estado',
     );
     expect(eq).toHaveBeenCalledWith('id', 'user-1');
   });
@@ -59,6 +60,8 @@ describe('getOwnProfile', () => {
       genero: 'femenino',
       profesion: 'Diseñadora',
       foto_url: 'user-1/foto.jpg',
+      hobbies: ['cine'],
+      intereses: ['viajar'],
       kyc_estado: 'pendiente',
     };
     const maybeSingle = jest.fn().mockResolvedValue({ data: rowData });
@@ -81,6 +84,8 @@ describe('isProfileComplete', () => {
     genero: 'femenino',
     profesion: 'Diseñadora',
     foto_url: 'user-1/foto.jpg',
+    hobbies: ['cine'],
+    intereses: ['viajar'],
     kyc_estado: 'pendiente' as const,
   };
 
@@ -163,5 +168,44 @@ describe('upsertPreferenciasSalida', () => {
 
     expect(result.error).toBe('No hay sesión activa.');
     expect(mockedSupabase.from).not.toHaveBeenCalled();
+  });
+});
+
+describe('getPublicProfile', () => {
+  it('reads the safe-columns view for the given user id', async () => {
+    const rowData = {
+      id: 'user-2',
+      rol: 'rentador',
+      alias: 'BobAlias',
+      edad: 30,
+      genero: 'masculino',
+      profesion: 'Ingeniero',
+      hobbies: ['fútbol'],
+      intereses: ['tecnología'],
+      foto_url: 'user-2/foto.jpg',
+      kyc_estado: 'verificado',
+    };
+    const maybeSingle = jest.fn().mockResolvedValue({ data: rowData });
+    const eq = jest.fn().mockReturnValue({ maybeSingle });
+    const select = jest.fn().mockReturnValue({ eq });
+    mockedSupabase.from.mockReturnValue({ select });
+
+    const profile = await getPublicProfile('user-2');
+
+    expect(profile).toEqual(rowData);
+    expect(mockedSupabase.from).toHaveBeenCalledWith('perfiles_publicos');
+    expect(select).toHaveBeenCalledWith('*');
+    expect(eq).toHaveBeenCalledWith('id', 'user-2');
+  });
+
+  it('returns null when no such profile exists', async () => {
+    const maybeSingle = jest.fn().mockResolvedValue({ data: null });
+    const eq = jest.fn().mockReturnValue({ maybeSingle });
+    const select = jest.fn().mockReturnValue({ eq });
+    mockedSupabase.from.mockReturnValue({ select });
+
+    const profile = await getPublicProfile('nonexistent');
+
+    expect(profile).toBeNull();
   });
 });
