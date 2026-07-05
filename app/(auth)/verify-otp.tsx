@@ -37,6 +37,8 @@ export default function VerifyOtpScreen() {
       router.replace('/(auth)/select-role');
     } else if (!isProfileComplete(profile)) {
       router.replace('/(auth)/profile-setup');
+    } else if (profile.kyc_estado !== 'verificado') {
+      router.replace('/(auth)/kyc');
     } else {
       router.replace('/');
     }

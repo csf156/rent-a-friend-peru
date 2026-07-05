@@ -40,9 +40,10 @@ describe('VerifyOtpScreen', () => {
     genero: 'femenino',
     profesion: 'Diseñadora',
     foto_url: 'user-1/foto.jpg',
+    kyc_estado: 'verificado',
   };
 
-  it('verifies the code and goes home when the profile is complete', async () => {
+  it('verifies the code and goes home when the profile is complete and KYC verified', async () => {
     mockedVerifyOtp.mockResolvedValue({ error: null });
     mockedGetOwnProfile.mockResolvedValue(completeProfile);
     await render(<VerifyOtpScreen />);
@@ -87,6 +88,19 @@ describe('VerifyOtpScreen', () => {
     });
   });
 
+  it('sends users with a complete profile but unverified KYC to the kyc screen', async () => {
+    mockedVerifyOtp.mockResolvedValue({ error: null });
+    mockedGetOwnProfile.mockResolvedValue({ ...completeProfile, kyc_estado: 'pendiente' });
+    await render(<VerifyOtpScreen />);
+
+    await fireEvent.changeText(screen.getByPlaceholderText('000000'), '123456');
+    await fireEvent.press(screen.getByText('Verificar'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/(auth)/kyc');
+    });
+  });
+
   it('shows an error for an invalid or expired code and does not navigate', async () => {
     mockedVerifyOtp.mockResolvedValue({ error: 'Token has expired or is invalid' });
     await render(<VerifyOtpScreen />);
@@ -102,7 +116,9 @@ describe('VerifyOtpScreen', () => {
     mockedRequestOtp.mockResolvedValue({ error: null });
     await render(<VerifyOtpScreen />);
 
-    expect(screen.getByText('Reenviar código').props.accessibilityState?.disabled).toBeFalsy();
+    expect(
+      screen.getByRole('button', { name: 'Reenviar código' }).props.accessibilityState?.disabled,
+    ).toBe(false);
 
     await act(async () => {
       await fireEvent.press(screen.getByText('Reenviar código'));

@@ -44,7 +44,7 @@ describe('getOwnProfile', () => {
     expect(profile).toBeNull();
     expect(mockedSupabase.from).toHaveBeenCalledWith('profiles');
     expect(select).toHaveBeenCalledWith(
-      'rol, nombre, alias, edad, genero, profesion, foto_url',
+      'rol, nombre, alias, edad, genero, profesion, foto_url, kyc_estado',
     );
     expect(eq).toHaveBeenCalledWith('id', 'user-1');
   });
@@ -59,6 +59,7 @@ describe('getOwnProfile', () => {
       genero: 'femenino',
       profesion: 'Diseñadora',
       foto_url: 'user-1/foto.jpg',
+      kyc_estado: 'pendiente',
     };
     const maybeSingle = jest.fn().mockResolvedValue({ data: rowData });
     const eq = jest.fn().mockReturnValue({ maybeSingle });
@@ -80,6 +81,7 @@ describe('isProfileComplete', () => {
     genero: 'femenino',
     profesion: 'Diseñadora',
     foto_url: 'user-1/foto.jpg',
+    kyc_estado: 'pendiente' as const,
   };
 
   it('returns true when all required fields are present', () => {

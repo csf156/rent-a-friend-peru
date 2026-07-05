@@ -2,27 +2,12 @@ import { supabase } from '@/lib/supabase';
 
 export type UploadResult = { path: string | null; error: string | null };
 
-/**
- * Uploads a locally-picked profile photo to the private `fotos` bucket
- * under `<uid>/foto.jpg` (owner-write policy from Fase 1.1). Returns the
- * storage PATH, not a public URL — the bucket is private, so callers must
- * request a signed URL to display it.
- */
-export async function uploadProfilePhoto(localUri: string): Promise<UploadResult> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { path: null, error: 'No hay sesión activa.' };
-  }
-
+async function uploadToBucket(bucket: string, path: string, localUri: string): Promise<UploadResult> {
   const response = await fetch(localUri);
   const bytes = await response.arrayBuffer();
-  const path = `${user.id}/foto.jpg`;
 
   const { error } = await supabase.storage
-    .from('fotos')
+    .from(bucket)
     .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
 
   if (error) {
@@ -30,4 +15,42 @@ export async function uploadProfilePhoto(localUri: string): Promise<UploadResult
   }
 
   return { path, error: null };
+}
+
+async function getOwnUserId(): Promise<string | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+/**
+ * Uploads a locally-picked profile photo to the private `fotos` bucket
+ * under `<uid>/foto.jpg` (owner-write policy from Fase 1.1). Returns the
+ * storage PATH, not a public URL — the bucket is private, so callers must
+ * request a signed URL to display it.
+ */
+export async function uploadProfilePhoto(localUri: string): Promise<UploadResult> {
+  const uid = await getOwnUserId();
+  if (!uid) {
+    return { path: null, error: 'No hay sesión activa.' };
+  }
+  return uploadToBucket('fotos', `${uid}/foto.jpg`, localUri);
+}
+
+export type DniDocumentKind = 'dni' | 'selfie';
+
+/**
+ * Uploads the DNI photo or liveness selfie to the private `dni` bucket
+ * (owner-only read/write, Fase 1.1) under `<uid>/<kind>.jpg`.
+ */
+export async function uploadDniDocument(
+  kind: DniDocumentKind,
+  localUri: string,
+): Promise<UploadResult> {
+  const uid = await getOwnUserId();
+  if (!uid) {
+    return { path: null, error: 'No hay sesión activa.' };
+  }
+  return uploadToBucket('dni', `${uid}/${kind}.jpg`, localUri);
 }

@@ -1,5 +1,7 @@
 import type { RolUsuario } from '@/lib/auth';
 
+export type KycEstado = 'pendiente' | 'verificado' | 'rechazado';
+
 export type OwnProfile = {
   rol: RolUsuario;
   nombre: string | null;
@@ -8,6 +10,7 @@ export type OwnProfile = {
   genero: string | null;
   profesion: string | null;
   foto_url: string | null;
+  kyc_estado: KycEstado;
 };
 
 const REQUIRED_FIELDS = ['nombre', 'alias', 'edad', 'genero', 'profesion', 'foto_url'] as const;

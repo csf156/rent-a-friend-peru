@@ -5,7 +5,7 @@ import { isProfileComplete, type OwnProfile } from '@/lib/profile-complete';
 export type { OwnProfile };
 export { isProfileComplete };
 
-const PROFILE_SELECT = 'rol, nombre, alias, edad, genero, profesion, foto_url';
+const PROFILE_SELECT = 'rol, nombre, alias, edad, genero, profesion, foto_url, kyc_estado';
 
 /** Returns the signed-in user's profile, or null if none exists yet. */
 export async function getOwnProfile(): Promise<OwnProfile | null> {
